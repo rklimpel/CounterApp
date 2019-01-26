@@ -7,9 +7,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Counter',
+      title: 'Counter 1',
       theme: ThemeData(
-        brightness: Brightness.light,
+        brightness: Brightness.dark,
       ),
       home: MyHomePage(title: 'Counter'),
     );
@@ -39,26 +39,77 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void resetCounter() {
+    setState(() {
+      _counter = 0;
+    });
+  }
+
+  void _confirmDialog(String text, void onConfirmed()) {
+    showDialog(
+      context: context,
+      child: new AlertDialog(
+        title: new Text("$text"),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("No"),
+          ),
+          FlatButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirmed();
+            },
+            child: Text("Yes"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              _confirmDialog("Do you really want to reset this Counter?", resetCounter);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.delete_forever),
+            onPressed: null,
+          )
+        ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(8),
         child: Center(
             child: Column(
           children: <Widget>[
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Container(
-                width: double.infinity,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(14.0),
                   child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                     child: Center(
-                      child: Text("$_counter"),
+                      child: Text(
+                        "$_counter",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withOpacity(0.95),
+                          fontSize: 80,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -71,8 +122,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: SizedBox.expand(
-                      child: RaisedButton(
-                        child: Text("+"),
+                      child: OutlineButton(
+                        highlightColor: Colors.lightGreen,
+                        splashColor: Colors.lightGreen,
+                        highlightedBorderColor: Colors.grey,
+                        child: Text(
+                          "+",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.withOpacity(0.3),
+                            fontSize: 80,
+                          ),
+                        ),
                         onPressed: _incCounter,
                       ),
                     ),
@@ -87,8 +148,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: SizedBox.expand(
-                      child: RaisedButton(
-                        child: Text("-"),
+                      child: OutlineButton(
+                        highlightColor: Colors.deepOrange,
+                        splashColor: Colors.deepOrange,
+                        highlightedBorderColor: Colors.grey,
+                        child: Text(
+                          "-",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.withOpacity(0.3),
+                            fontSize: 80,
+                          ),
+                        ),
                         onPressed: _decCounter,
                       ),
                     ),
@@ -99,18 +170,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         )),
       ),
+      drawer: Drawer(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
+          child: Container(
+            child: Text("Counter List..."),
+          ),
+        ),
+      ),
     );
-  }
-}
-
-class Test extends StatefulWidget {
-  @override
-  _TestState createState() => _TestState();
-}
-
-class _TestState extends State<Test> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
