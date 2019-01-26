@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 void main() => runApp(MyApp());
 
@@ -11,8 +10,6 @@ class MyApp extends StatelessWidget {
       title: 'Counter',
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.blue,
-        accentColor: Colors.deepOrangeAccent,
       ),
       home: MyHomePage(title: 'Counter'),
     );
@@ -30,9 +27,15 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  void _incrementCounter() {
+  void _incCounter() {
     setState(() {
       _counter++;
+    });
+  }
+
+  void _decCounter() {
+    setState(() {
+      _counter--;
     });
   }
 
@@ -45,28 +48,69 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Center(
-          child:Container(
-            width: 160,
-            height: 160,
-            child: RaisedButton(
-              color: Colors.blue,
-              child: Center(
-                child: Text(
-                  "+",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 100,
-                    fontWeight: FontWeight.w100,
+            child: Column(
+          children: <Widget>[
+            Expanded(
+              flex: 2,
+              child: Container(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Card(
+                    child: Center(
+                      child: Text("$_counter"),
+                    ),
                   ),
                 ),
               ),
-              onPressed: _incrementCounter,
-              shape: new RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(360)),
             ),
-          ),
-        ),
+            Expanded(
+              flex: 4,
+              child: Container(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SizedBox.expand(
+                      child: RaisedButton(
+                        child: Text("+"),
+                        onPressed: _incCounter,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Container(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox.expand(
+                      child: RaisedButton(
+                        child: Text("-"),
+                        onPressed: _decCounter,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        )),
       ),
     );
+  }
+}
+
+class Test extends StatefulWidget {
+  @override
+  _TestState createState() => _TestState();
+}
+
+class _TestState extends State<Test> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
