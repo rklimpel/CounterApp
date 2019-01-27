@@ -1,17 +1,23 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const String PREFS_LAST = "PREFS_LAST";
+const String PREFS_LIST = "PREFS_LIST";
+const String PREFS_VALUE = "PREFS_VALUE_";
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Counter 1',
+      title: 'Counter',
       theme: ThemeData(
         brightness: Brightness.dark,
       ),
-      home: MyHomePage(title: 'Counter'),
+      home: MyHomePage(title: "Counter"),
     );
   }
 }
@@ -26,55 +32,114 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  String counterName;
+  List<String> counters = new List();
+  Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
 
-  void _incCounter() {
+  void incCounter() {
     setState(() {
       _counter++;
+      saveCounter();
     });
   }
 
-  void _decCounter() {
+  void decCounter() {
     setState(() {
       _counter--;
+      saveCounter();
     });
   }
 
   void resetCounter() {
     setState(() {
       _counter = 0;
+      saveCounter();
     });
   }
 
-  void _confirmDialog(String text, void onConfirmed()) {
-    showDialog(
-      context: context,
-      child: new AlertDialog(
-        title: new Text("$text"),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("No"),
-          ),
-          FlatButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirmed();
-            },
-            child: Text("Yes"),
-          ),
-        ],
-      ),
-    );
+  void deleteCounter() {
+    //TODO Implement
+  }
+
+  Future<String> getLastCounter() async {
+    SharedPreferences prefs = await getPrefs();
+    return prefs.getString(PREFS_LAST) ?? null;
+  }
+
+  Future<List<String>> getAllCounters() async {
+    final SharedPreferences prefs = await getPrefs();
+    return prefs.getStringList(PREFS_LIST) ?? null;
+  }
+
+  Future<int> getCounterValue(String counterName) async {
+    final SharedPreferences prefs = await getPrefs();
+    return prefs.getInt(PREFS_VALUE + counterName) ?? null;
+  }
+
+  void initCounter() async {
+    String lastCounter = await getLastCounter();
+    lastCounter != null ? loadCounter(lastCounter) : addCounter("Counter 1");
+  }
+
+  void loadCounter(String name) async {
+    counterName = name;
+    _counter = await getCounterValue(name);
+    setState(() {});
+  }
+
+  void addCounter(String name) {
+    setState(() {
+      counterName = name != null ? name : "Counter ${getNextCounterNumber()}";
+      _counter = 0;
+      counters.add(counterName);
+    });
+    saveCounter();
+    saveCounterList();
+  }
+
+  String getNextCounterNumber() {
+    List<int> values = new List();
+    for (int i = 0; i < counters.length; i++) {
+      if (counters[i].contains("Counter ")) {
+        values.add(int.parse(counters[i].substring(7)));
+      }
+    }
+    return values.length != 0 ? "${values.reduce(max) + 1}" : "0";
+  }
+
+  void saveCounter() async {
+    SharedPreferences prefs = await getPrefs();
+    await prefs.setString(PREFS_LAST, counterName);
+    await prefs.setInt(PREFS_VALUE + counterName, _counter);
+  }
+
+  void saveCounterList() async {
+    SharedPreferences prefs = await getPrefs();
+    await prefs.setStringList(PREFS_LIST, counters);
+  }
+
+  @override
+  void initState() {
+    initCounter();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("$counterName"),
         actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              addCounter(null);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {},
+          ),
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
@@ -83,8 +148,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           IconButton(
             icon: Icon(Icons.delete_forever),
-            onPressed: null,
-          )
+            onPressed: () {
+              _confirmDialog("Do you really want to delete this Counter permanently?\n(Not implementet)", deleteCounter);
+            },
+          ),
         ],
       ),
       body: Padding(
@@ -134,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             fontSize: 80,
                           ),
                         ),
-                        onPressed: _incCounter,
+                        onPressed: incCounter,
                       ),
                     ),
                   ),
@@ -160,7 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             fontSize: 80,
                           ),
                         ),
-                        onPressed: _decCounter,
+                        onPressed: decCounter,
                       ),
                     ),
                   ),
@@ -177,6 +244,30 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text("Counter List..."),
           ),
         ),
+      ),
+    );
+  }
+
+  void _confirmDialog(String text, void onConfirmed()) {
+    showDialog(
+      context: context,
+      child: new AlertDialog(
+        title: new Text("$text"),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("No"),
+          ),
+          FlatButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirmed();
+            },
+            child: Text("Yes"),
+          ),
+        ],
       ),
     );
   }
