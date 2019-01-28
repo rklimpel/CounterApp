@@ -36,6 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> counters = new List();
   Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
 
+  // active Counter Methods //
+
   void incCounter() {
     setState(() {
       _counter++;
@@ -57,9 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void deleteCounter() {
-    //TODO Implement
-  }
+  // Shared Preferences Stuff //
 
   Future<String> getLastCounter() async {
     SharedPreferences prefs = await getPrefs();
@@ -76,9 +76,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return prefs.getInt(PREFS_VALUE + counterName) ?? null;
   }
 
-  void initCounter() async {
+  //Counter init, load usw. //
+
+  void initData() async {
     String lastCounter = await getLastCounter();
     lastCounter != null ? loadCounter(lastCounter) : addCounter("Counter 1");
+    counters = await getAllCounters();
   }
 
   void loadCounter(String name) async {
@@ -97,16 +100,6 @@ class _MyHomePageState extends State<MyHomePage> {
     saveCounterList();
   }
 
-  String getNextCounterNumber() {
-    List<int> values = new List();
-    for (int i = 0; i < counters.length; i++) {
-      if (counters[i].contains("Counter ")) {
-        values.add(int.parse(counters[i].substring(7)));
-      }
-    }
-    return values.length != 0 ? "${values.reduce(max) + 1}" : "0";
-  }
-
   void saveCounter() async {
     SharedPreferences prefs = await getPrefs();
     await prefs.setString(PREFS_LAST, counterName);
@@ -118,9 +111,25 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setStringList(PREFS_LIST, counters);
   }
 
+  void deleteCounter() {
+    //TODO Implement
+  }
+
+  //Helper Methods //
+
+  String getNextCounterNumber() {
+    List<int> values = new List();
+    for (int i = 0; i < counters.length; i++) {
+      if (counters[i].contains("Counter ")) {
+        values.add(int.parse(counters[i].substring(7)));
+      }
+    }
+    return values.length != 0 ? "${values.reduce(max) + 1}" : "0";
+  }
+
   @override
   void initState() {
-    initCounter();
+    initData();
     super.initState();
   }
 
@@ -149,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.delete_forever),
             onPressed: () {
-              _confirmDialog("Do you really want to delete this Counter permanently?\n(Not implementet)", deleteCounter);
+              _confirmDialog("Do you really want to delete this Counter permanently?\n(Not implemented)", deleteCounter);
             },
           ),
         ],
@@ -241,7 +250,23 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
           child: Container(
-            child: Text("Counter List..."),
+            child: ListView(
+              children: List.generate(counters.length, (index) {
+                return Container(
+                  height: 50,
+                  child: MaterialButton(
+                    shape: Border.all(width: 1, color: Colors.black),
+                    onPressed: () {
+                      loadCounter(counters[index]);
+                      Navigator.pop(context);
+                    },
+                    child: Center(
+                      child: Text("${counters[index]}"),
+                    ),
+                  ),
+                );
+              }),
+            ),
           ),
         ),
       ),
