@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Counter',
       theme: ThemeData(
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
       ),
       home: MyHomePage(title: "Counter"),
     );
@@ -164,49 +164,58 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(0),
         child: Center(
             child: Column(
           children: <Widget>[
-            Expanded(
-              flex: 3,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(2),
+            Container(
+              width: 200,
+              height: 200,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 0.1,
                     ),
-                    child: Center(
-                      child: Text(
-                        "$_counter",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.95),
-                          fontSize: 80,
-                        ),
+                    borderRadius: BorderRadius.circular(90),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "$_counter",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                        fontSize: 80,
                       ),
                     ),
                   ),
                 ),
               ),
             ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.grey.withOpacity(0.3),
+            ),
             Expanded(
               flex: 4,
               child: Container(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(0.0),
                     child: SizedBox.expand(
-                      child: OutlineButton(
+                      child: FlatButton(
                         highlightColor: Colors.lightGreen,
                         splashColor: Colors.lightGreen,
-                        highlightedBorderColor: Colors.grey,
+                        //highlightedBorderColor: Colors.grey,
                         child: Text(
                           "+",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.withOpacity(0.3),
+                            color: Colors.grey.withOpacity(0.5),
                             fontSize: 80,
                           ),
                         ),
@@ -217,22 +226,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.grey.withOpacity(0.3),
+            ),
             Expanded(
               flex: 2,
               child: Container(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(0),
                     child: SizedBox.expand(
-                      child: OutlineButton(
+                      child: FlatButton(
                         highlightColor: Colors.deepOrange,
                         splashColor: Colors.deepOrange,
-                        highlightedBorderColor: Colors.grey,
                         child: Text(
                           "-",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.withOpacity(0.3),
+                            color: Colors.grey.withOpacity(0.5),
                             fontSize: 80,
                           ),
                         ),
@@ -247,26 +260,84 @@ class _MyHomePageState extends State<MyHomePage> {
         )),
       ),
       drawer: Drawer(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
-          child: Container(
-            child: ListView(
-              children: List.generate(counters.length, (index) {
-                return Container(
-                  height: 50,
-                  child: MaterialButton(
-                    shape: Border.all(width: 1, color: Colors.black),
-                    onPressed: () {
-                      loadCounter(counters[index]);
-                      Navigator.pop(context);
-                    },
-                    child: Center(
-                      child: Text("${counters[index]}"),
-                    ),
+        child: Container(
+          child: ListView(
+            children: List.generate(counters.length, (index) {
+              return Dismissible(
+                key: Key(counters[index]),
+                onDismissed: (direction) {
+                  setState(() {
+                    counters.removeWhere((item) => counters[index] == item);
+                  });
+                },
+                child: Container(
+                  height: 100,
+                  child: Stack(
+                    children: <Widget>[
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(58, 0, 8, 0),
+                          child: Container(
+                            height: 60,
+                            width: double.infinity,
+                            child: Card(
+                              color: Colors.white,
+                              shape: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.withOpacity(0.3),
+                                ),
+                                top: BorderSide(
+                                  color: Colors.grey.withOpacity(0.3),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 100,
+                        width: 100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Card(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(360),
+                              side: BorderSide(
+                                color: Colors.grey.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text("${getCounterValue("${counters[index]}")}"),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        child: Center(
+                          child: SizedBox.expand(
+                            child: FlatButton(
+                              color: Colors.transparent,
+                              onPressed: () {
+                                loadCounter(counters[index]);
+                                Navigator.pop(context);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(108, 0, 42, 0),
+                                child: Text("${counters[index]}"),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              }),
-            ),
+                ),
+              );
+            }),
           ),
         ),
       ),
