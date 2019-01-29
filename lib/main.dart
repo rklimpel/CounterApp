@@ -33,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String counterName;
-  List<String> counters = new List();
+  List<Counter> counters = new List();
   Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
 
   // active Counter Methods //
@@ -66,9 +66,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return prefs.getString(PREFS_LAST) ?? null;
   }
 
-  Future<List<String>> getAllCounters() async {
+  Future<List<Counter>> getAllCounters() async {
     final SharedPreferences prefs = await getPrefs();
-    return prefs.getStringList(PREFS_LIST) ?? null;
+    List<String> tmpCounterNames = await prefs.getStringList(PREFS_LIST) ?? null;
+    List<Counter> tmpCounters = new List();
+    for (var i = 0; i < tmpCounterNames.length; i++) {
+      tmpCounters.add(Counter(tmpCounterNames[i], await getCounterValue(tmpCounterNames[i])));
+    }
+    setState(() {
+      counters = tmpCounters;
+    });
   }
 
   Future<int> getCounterValue(String counterName) async {
@@ -94,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       counterName = name != null ? name : "Counter ${getNextCounterNumber()}";
       _counter = 0;
-      counters.add(counterName);
+      counters.add(Counter(counterName, _counter));
     });
     saveCounter();
     saveCounterList();
@@ -104,12 +111,15 @@ class _MyHomePageState extends State<MyHomePage> {
     SharedPreferences prefs = await getPrefs();
     await prefs.setString(PREFS_LAST, counterName);
     await prefs.setInt(PREFS_VALUE + counterName, _counter);
+    await getAllCounters();
   }
 
   void saveCounterList() async {
     SharedPreferences prefs = await getPrefs();
-    await prefs.setStringList(PREFS_LIST, counters);
+    await prefs.setStringList(PREFS_LIST, counters.map(returnName));
   }
+
+  String returnName(Counter c) => c.name;
 
   void deleteCounter() {
     //TODO Implement
@@ -120,8 +130,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String getNextCounterNumber() {
     List<int> values = new List();
     for (int i = 0; i < counters.length; i++) {
-      if (counters[i].contains("Counter ")) {
-        values.add(int.parse(counters[i].substring(7)));
+      if (counters[i].name.contains("Counter ")) {
+        values.add(int.parse(counters[i].name.substring(7)));
       }
     }
     return values.length != 0 ? "${values.reduce(max) + 1}" : "0";
@@ -264,7 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ListView(
             children: List.generate(counters.length, (index) {
               return Dismissible(
-                key: Key(counters[index]),
+                key: Key(counters[index].name),
                 onDismissed: (direction) {
                   setState(() {
                     counters.removeWhere((item) => counters[index] == item);
@@ -310,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: Text("${getCounterValue("${counters[index]}")}"),
+                                child: Text("${counters[index].value}"),
                               ),
                             ),
                           ),
@@ -322,12 +332,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: FlatButton(
                               color: Colors.transparent,
                               onPressed: () {
-                                loadCounter(counters[index]);
+                                loadCounter(counters[index].name);
                                 Navigator.pop(context);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.fromLTRB(108, 0, 42, 0),
-                                child: Text("${counters[index]}"),
+                                child: Text("${counters[index].name}"),
                               ),
                             ),
                           ),
@@ -367,4 +377,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+}
+
+class Counter {
+  Counter(this.name, this.value);
+  String name;
+  int value;
 }
