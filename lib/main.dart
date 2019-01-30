@@ -1,11 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-const String PREFS_LAST = "PREFS_LAST";
-const String PREFS_LIST = "PREFS_LIST";
-const String PREFS_VALUE = "PREFS_VALUE_";
+import 'prefsHandler.dart';
 
 void main() => runApp(MyApp());
 
@@ -31,68 +28,51 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int counter = 0;
   String counterName;
   List<Counter> counters = [];
-  Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
-
-  // active Counter Methods //
 
   void incCounter() {
     setState(() {
-      _counter++;
-      saveCounter();
+      counter++;
+      saveState();
     });
   }
 
   void decCounter() {
     setState(() {
-      _counter--;
-      saveCounter();
+      counter--;
+      saveState();
     });
   }
 
   void resetCounter() {
     setState(() {
-      _counter = 0;
-      saveCounter();
+      counter = 0;
+      saveState();
     });
   }
 
-  // Shared Preferences Stuff //
-
-  Future<String> getLastCounter() async {
-    SharedPreferences prefs = await getPrefs();
-    return prefs.getString(PREFS_LAST) ?? null;
-  }
-
-  Future<List<Counter>> getAllCounters() async {
-    final SharedPreferences prefs = await getPrefs();
-    List<String> tmpCounterNames = await prefs.getStringList(PREFS_LIST) ?? null;
-    List<Counter> tmpCounters = new List();
-    for (var i = 0; i < tmpCounterNames.length; i++) {
-      tmpCounters.add(Counter(tmpCounterNames[i], await getCounterValue(tmpCounterNames[i])));
-    }
-    setState(() {
-      counters = tmpCounters;
-      for (var i = 0; i < counters.length; i++) {
-        print("Load Counter $i with name: ${counters[i].name} and value: ${counters[i].value}");
+  void updateListValue(String name, int value) {
+    for (var i = 0; i < counters.length; i++) {
+      if (counters[i].name == name) {
+        counters[i].value = value;
       }
-    });
+    }
   }
 
-  Future<int> getCounterValue(String counterName) async {
-    final SharedPreferences prefs = await getPrefs();
-    return prefs.getInt(PREFS_VALUE + counterName) ?? null;
+  void loadListValues(List<String> names) async {
+    counters.clear();
+    for (var i = 0; i < names.length; i++) {
+      counters.add(Counter(names[i], await readCounterValue(names[i])));
+    }
   }
-
-  //Counter init, load usw. //
 
   void initData() async {
-    String lastCounter = await getLastCounter();
+    String lastCounter = await readLastCounter();
     print("Last Counter is: $lastCounter");
-    Future futureCounters = getAllCounters();
-    futureCounters.then((_) => print(counters.length));
+    Future futureCounterNames = readAllCountersNames();
+    futureCounterNames.then((names) => loadListValues(names));
 
     if (lastCounter != null) {
       loadCounter(lastCounter);
@@ -106,55 +86,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void loadCounter(String name) async {
     counterName = name;
-    _counter = await getCounterValue(name);
-    print("Counters length: ${counters.length}");
+    counter = await readCounterValue(name);
     setState(() {});
   }
 
   void addCounter(String name) {
-    counterName = name != null ? name : "Counter ${getNextCounterNumber()}";
-    _counter = 0;
-    counters.add(Counter(counterName, _counter));
+    counterName = name != null ? name : "Counter ${getFreeCounterName()}";
+    counter = 0;
+    counters.add(Counter(counterName, counter));
     setState(() {});
-    saveCounter();
-    saveCounterList();
+    saveState();
   }
 
-  void saveCounter() async {
-    SharedPreferences prefs = await getPrefs();
-    await prefs.setString(PREFS_LAST, counterName);
-    await prefs.setInt(PREFS_VALUE + counterName, _counter);
-    await getAllCounters();
+  void saveState() async {
+    updateListValue(counterName, counter);
+    writeCounterValue(counterName, counter);
+    writeAllCounterNames(counters);
   }
 
-  void saveCounterList() async {
-    SharedPreferences prefs = await getPrefs();
-    await prefs.setStringList(PREFS_LIST, counterListToStringList(counters));
-  }
+  void deleteThisCounter() => deleteCounter(counterName);
 
-  List<String> counterListToStringList(List<Counter> cs) {
-    List<String> ss = [];
-    for (var i = 0; i < cs.length; i++) {
-      ss.add(cs[i].name);
-    }
-    return ss;
-  }
-
-  void deleteThisCounter() async {
-    SharedPreferences prefs = await getPrefs();
-    await prefs.remove(counterName);
-    saveCounterList();
-  }
-
-  void deleteCounter(String name) async {
-    SharedPreferences prefs = await getPrefs();
-    print(await prefs.remove(name));
-    saveCounterList();
+  void deleteCounter(String name) {
+    setState(() {
+      deleteCounterValue(name);
+      counters.removeWhere((counter) => counter.name == name);
+      if (name == counterName) {
+        loadCounter(counters[0].name);
+      }
+    });
   }
 
   //Helper Methods //
 
-  String getNextCounterNumber() {
+  String getFreeCounterName() {
     List<int> values = new List();
     for (int i = 0; i < counters.length; i++) {
       if (counters[i].name.contains("Counter ")) {
@@ -215,14 +179,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: Colors.white,
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
-                      color: Colors.grey.withOpacity(0.2),
-                      width: 0.1,
+                      color: Colors.grey.withOpacity(0.3),
+                      width: 1,
                     ),
                     borderRadius: BorderRadius.circular(90),
                   ),
                   child: Center(
                     child: Text(
-                      "$_counter",
+                      "$counter",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
@@ -253,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           "+",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.withOpacity(0.5),
+                            color: Colors.grey.withOpacity(0.9),
                             fontSize: 80,
                           ),
                         ),
@@ -283,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           "-",
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.withOpacity(0.5),
+                            color: Colors.grey.withOpacity(0.9),
                             fontSize: 80,
                           ),
                         ),
@@ -304,10 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
               return Dismissible(
                 key: Key(counters[index].name),
                 onDismissed: (direction) {
-                  setState(() {
-                    counters.removeAt(index);
-                    deleteCounter(counters[index].name);
-                  });
+                  deleteCounter(counters[index].name);
                 },
                 child: Container(
                   height: 100,
@@ -320,19 +281,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             height: 60,
                             width: double.infinity,
                             child: Card(
-                              color: Colors.white,
-                              elevation: 4,
-                              shape: Border(
-                                bottom: BorderSide(
+                                color: Colors.white,
+                                elevation: 0,
+                                shape: Border.all(
                                   color: Colors.grey.withOpacity(0.3),
-                                  width: 0,
-                                ),
-                                top: BorderSide(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  width: 0,
-                                ),
-                              ),
-                            ),
+                                  width: 2,
+                                )),
                           ),
                         ),
                       ),
@@ -342,13 +296,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Card(
-                            elevation: 4,
+                            elevation: 0,
                             color: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(360),
                               side: BorderSide(
                                 color: Colors.grey.withOpacity(0.3),
-                                width: 0.2,
+                                width: 2,
                               ),
                             ),
                             child: Center(
