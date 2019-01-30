@@ -33,7 +33,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String counterName;
-  List<Counter> counters = new List();
+  List<Counter> counters = [];
   Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
 
   // active Counter Methods //
@@ -75,6 +75,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {
       counters = tmpCounters;
+      for (var i = 0; i < counters.length; i++) {
+        print("Load Counter $i with name: ${counters[i].name} and value: ${counters[i].value}");
+      }
     });
   }
 
@@ -87,22 +90,32 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void initData() async {
     String lastCounter = await getLastCounter();
-    lastCounter != null ? loadCounter(lastCounter) : addCounter("Counter 1");
-    counters = await getAllCounters();
+    print("Last Counter is: $lastCounter");
+    Future futureCounters = getAllCounters();
+    futureCounters.then((_) => print(counters.length));
+
+    if (lastCounter != null) {
+      loadCounter(lastCounter);
+    } else {
+      if (counters.length == 0) {
+        addCounter("Counter 1");
+      }
+    }
+    ;
   }
 
   void loadCounter(String name) async {
     counterName = name;
     _counter = await getCounterValue(name);
+    print("Counters length: ${counters.length}");
     setState(() {});
   }
 
   void addCounter(String name) {
-    setState(() {
-      counterName = name != null ? name : "Counter ${getNextCounterNumber()}";
-      _counter = 0;
-      counters.add(Counter(counterName, _counter));
-    });
+    counterName = name != null ? name : "Counter ${getNextCounterNumber()}";
+    _counter = 0;
+    counters.add(Counter(counterName, _counter));
+    setState(() {});
     saveCounter();
     saveCounterList();
   }
@@ -116,13 +129,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void saveCounterList() async {
     SharedPreferences prefs = await getPrefs();
-    await prefs.setStringList(PREFS_LIST, counters.map(returnName));
+    await prefs.setStringList(PREFS_LIST, counterListToStringList(counters));
   }
 
-  String returnName(Counter c) => c.name;
+  List<String> counterListToStringList(List<Counter> cs) {
+    List<String> ss = [];
+    for (var i = 0; i < cs.length; i++) {
+      ss.add(cs[i].name);
+    }
+    return ss;
+  }
 
-  void deleteCounter() {
-    //TODO Implement
+  void deleteThisCounter() async {
+    SharedPreferences prefs = await getPrefs();
+    await prefs.remove(counterName);
+    saveCounterList();
+  }
+
+  void deleteCounter(String name) async {
+    SharedPreferences prefs = await getPrefs();
+    print(await prefs.remove(name));
+    saveCounterList();
   }
 
   //Helper Methods //
@@ -145,6 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    print(counters.length);
     return Scaffold(
       appBar: AppBar(
         title: Text("$counterName"),
@@ -168,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.delete_forever),
             onPressed: () {
-              _confirmDialog("Do you really want to delete this Counter permanently?\n(Not implemented)", deleteCounter);
+              _confirmDialog("Do you really want to delete this Counter permanently?\n(Not implemented)", deleteThisCounter);
             },
           ),
         ],
@@ -277,7 +305,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 key: Key(counters[index].name),
                 onDismissed: (direction) {
                   setState(() {
-                    counters.removeWhere((item) => counters[index] == item);
+                    counters.removeAt(index);
+                    deleteCounter(counters[index].name);
                   });
                 },
                 child: Container(
@@ -292,12 +321,15 @@ class _MyHomePageState extends State<MyHomePage> {
                             width: double.infinity,
                             child: Card(
                               color: Colors.white,
+                              elevation: 4,
                               shape: Border(
                                 bottom: BorderSide(
                                   color: Colors.grey.withOpacity(0.3),
+                                  width: 0,
                                 ),
                                 top: BorderSide(
                                   color: Colors.grey.withOpacity(0.3),
+                                  width: 0,
                                 ),
                               ),
                             ),
@@ -310,11 +342,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Card(
+                            elevation: 4,
                             color: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(360),
                               side: BorderSide(
                                 color: Colors.grey.withOpacity(0.3),
+                                width: 0.2,
                               ),
                             ),
                             child: Center(
