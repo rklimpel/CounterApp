@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 
 import 'prefsHandler.dart';
 
+//TODO:
+// [ ] Get first free number for Counter name
+// [ ] Edit Counter Value with Keyboard
+// [ ] Edit Counter Name
+// [X] Creator new inital Counter if every counter is removed
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -70,7 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void initData() async {
     String lastCounter = await readLastCounter();
-    print("Last Counter is: $lastCounter");
     Future futureCounterNames = readAllCountersNames();
     futureCounterNames.then((names) => loadListValues(names));
 
@@ -110,7 +115,11 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       deleteCounterValue(name);
       counters.removeWhere((counter) => counter.name == name);
-      if (name == counterName) {
+      if (counters.length == 0) {
+        Future.delayed(const Duration(milliseconds: 10), () {
+          addCounter(null);
+        });
+      } else if (name == counterName) {
         loadCounter(counters[0].name);
       }
     });
@@ -136,7 +145,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print(counters.length);
     return Scaffold(
       appBar: AppBar(
         title: Text("$counterName"),
@@ -268,6 +276,10 @@ class _MyHomePageState extends State<MyHomePage> {
               return Dismissible(
                 key: Key(counters[index].name),
                 onDismissed: (direction) {
+                  if (counters.length == 1) {
+                    Navigator.pop(context);
+                    print("POP!!!");
+                  }
                   deleteCounter(counters[index].name);
                 },
                 child: Container(
