@@ -143,6 +143,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  bool checkNameExists(String name) => counters.map(getCounterName).contains(name);
+
   @override
   void initState() {
     initData();
@@ -406,17 +408,26 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       child: new AlertDialog(
         title: new Text("Create new Counter"),
-        content: TextField(
-          controller: addCounterTextController,
-          decoration: new InputDecoration(
-            hintText: "Counter ${getFreeCounterNumber()}",
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: addCounterTextController,
+            validator: (val) => checkNameExists(val) ? "You can't use this name" : null,
+            decoration: new InputDecoration(
+              hintText: "Counter ${getFreeCounterNumber()}",
+            ),
           ),
         ),
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              addCounter(addCounterTextController.text);
-              Navigator.pop(context);
+              final form = formKey.currentState;
+              if (!form.validate()) {
+                //Do Nothing
+              } else {
+                addCounter(addCounterTextController.text);
+                Navigator.pop(context);
+              }
             },
             child: Text("Ok"),
           )
@@ -424,6 +435,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  final formKey = GlobalKey<FormState>();
 
   void editCounterDialog() {
     editCounterTextController.clear();
@@ -435,33 +448,42 @@ class _MyHomePageState extends State<MyHomePage> {
       child: new AlertDialog(
         title: new Text("Edit Counter"),
         content: Container(
-          height: 100,
-          child: Column(
-            children: <Widget>[
-              TextField(
-                controller: editCounterTextController,
-                autocorrect: false,
-              ),
-              TextField(
-                controller: editCounterValueController,
-                keyboardType: TextInputType.number,
-              ),
-            ],
+          height: 150,
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  controller: editCounterTextController,
+                  autocorrect: false,
+                  validator: (val) => checkNameExists(val) && val != counterName ? "You can't use this name" : null,
+                ),
+                TextField(
+                  controller: editCounterValueController,
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
           ),
         ),
         actions: <Widget>[
           FlatButton(
             onPressed: () {
               setState(() {
-                for (var i = 0; i < counters.length; i++) {
-                  if (counters[i].name == counterName) {
-                    counters[i].name = editCounterTextController.text;
+                final form = formKey.currentState;
+                if (!form.validate()) {
+                  //Do Nothing
+                } else {
+                  for (var i = 0; i < counters.length; i++) {
+                    if (counters[i].name == counterName) {
+                      counters[i].name = editCounterTextController.text;
+                    }
                   }
+                  counterName = editCounterTextController.text;
+                  counter = int.parse(editCounterValueController.text);
+                  Navigator.pop(context);
+                  saveState();
                 }
-                counterName = editCounterTextController.text;
-                counter = int.parse(editCounterValueController.text);
-                Navigator.pop(context);
-                saveState();
               });
             },
             child: Text("Save"),
