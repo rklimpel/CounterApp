@@ -1,12 +1,10 @@
-import 'dart:math';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import 'prefsHandler.dart';
 
 //TODO:
-// [ ] Get first free number for Counter name
+// [X] Get first free number for Counter name
 // [X] Edit Counter Value with Keyboard
 // [X] Edit Counter Name
 // [ ] Don't create two counters with the same name bitch!
@@ -105,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void addCounter(String name) {
     print(name);
-    counterName = (name != null && name != "") ? name : "Counter ${getFreeCounterName()}";
+    counterName = (name != null && name != "") ? name : "Counter ${getFreeCounterNumber()}";
     counter = 0;
     counters.add(Counter(counterName, counter));
     setState(() {});
@@ -135,14 +133,14 @@ class _MyHomePageState extends State<MyHomePage> {
     saveState();
   }
 
-  String getFreeCounterName() {
-    List<int> values = new List();
-    for (int i = 0; i < counters.length; i++) {
-      if (counters[i].name.contains("Counter ")) {
-        values.add(int.parse(counters[i].name.substring(7)));
+  String getCounterName(Counter c) => c.name;
+
+  String getFreeCounterNumber() {
+    for (int i = 0; i < counters.length + 1; i++) {
+      if (!counters.map(getCounterName).contains("Counter $i")) {
+        return "$i";
       }
     }
-    return values.length != 0 ? "${values.reduce(max) + 1}" : "0";
   }
 
   @override
@@ -411,7 +409,7 @@ class _MyHomePageState extends State<MyHomePage> {
         content: TextField(
           controller: addCounterTextController,
           decoration: new InputDecoration(
-            hintText: "Counter ${getFreeCounterName()}",
+            hintText: "Counter ${getFreeCounterNumber()}",
           ),
         ),
         actions: <Widget>[
