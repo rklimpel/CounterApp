@@ -7,7 +7,7 @@ import 'prefsHandler.dart';
 // [X] Get first free number for Counter name
 // [X] Edit Counter Value with Keyboard
 // [X] Edit Counter Name
-// [ ] Don't create two counters with the same name bitch!
+// [X] Don't create two counters with the same name bitch!
 // [X] Creator new inital Counter if every counter is removed
 
 void main() => runApp(MyApp());
@@ -16,12 +16,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Counter',
+      title: 'Count-It',
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.indigo,
       ),
-      home: MyHomePage(title: "Counter"),
+      home: MyHomePage(),
     );
   }
 }
@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.delete_forever),
             onPressed: () {
-              confirmDialog("Do you really want to delete this Counter permanently?\n(Not implemented)", deleteThisCounter);
+              confirmDialog("Do you really want to delete this Counter?", deleteThisCounter);
             },
           ),
         ],
@@ -197,7 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.all(24.0),
           child: Center(
             child: Card(
-              elevation: 4,
+              elevation: 6,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(1),
               ),
@@ -317,6 +317,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Stack(
                       children: <Widget>[
                         Card(
+                          elevation: 4,
                           color: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(1),
@@ -352,13 +353,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                   flex: 1,
                                   child: Container(
                                     child: Center(
-                                      child: AutoSizeText(
-                                        "${counters[index].name}",
-                                        maxLines: 1,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: AutoSizeText(
+                                          "${counters[index].name}",
+                                          maxLines: 2,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.black,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -429,7 +433,7 @@ class _MyHomePageState extends State<MyHomePage> {
           key: formKey,
           child: TextFormField(
             controller: addCounterTextController,
-            validator: (val) => checkNameExists(val) ? "You can't use this name" : null,
+            validator: (val) => checkNameExists(val) ? "name already in use" : null,
             decoration: new InputDecoration(
               hintText: "Counter ${getFreeCounterNumber()}",
             ),
@@ -463,17 +467,20 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       child: new AlertDialog(
-        title: new Text("Edit Counter"),
+        title: Container(
+          child: Text("Edit Counter"),
+        ),
         content: Container(
-          height: 150,
+          height: 140,
           child: Form(
+            autovalidate: true,
             key: formKey,
             child: Column(
               children: <Widget>[
                 TextFormField(
                   controller: editCounterTextController,
                   autocorrect: false,
-                  validator: (val) => checkNameExists(val) && val != counterName ? "You can't use this name" : null,
+                  validator: (val) => checkNameExists(val) && val != counterName ? "name already in use" : null,
                 ),
                 TextField(
                   controller: editCounterValueController,
