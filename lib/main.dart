@@ -6,7 +6,7 @@ import 'prefsHandler.dart';
 
 //TODO:
 // [ ] Get first free number for Counter name
-// [ ] Edit Counter Value with Keyboard
+// [X] Edit Counter Value with Keyboard
 // [X] Edit Counter Name
 // [ ] Don't create two counters with the same name bitch!
 // [X] Creator new inital Counter if every counter is removed
@@ -39,7 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String counterName;
   List<Counter> counters = [];
 
-  final controller = TextEditingController();
+  final addCounterTextController = TextEditingController();
+  final editCounterTextController = TextEditingController();
+  final editCounterValueController = TextEditingController();
 
   void incCounter() {
     setState(() {
@@ -148,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    controller.dispose();
+    addCounterTextController.dispose();
     super.dispose();
   }
 
@@ -166,7 +168,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: () {},
+            onPressed: () {
+              editCounterDialog();
+            },
           ),
           IconButton(
             icon: Icon(Icons.refresh),
@@ -393,7 +397,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: new AlertDialog(
         title: new Text("Create new Counter"),
         content: TextField(
-          controller: controller,
+          controller: addCounterTextController,
           decoration: new InputDecoration(
             hintText: "Counter ${getFreeCounterName()}",
           ),
@@ -401,10 +405,53 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              addCounter(controller.text);
+              addCounter(addCounterTextController.text);
               Navigator.pop(context);
             },
-            child: Text("OK"),
+            child: Text("Ok"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void editCounterDialog() {
+    showDialog(
+      context: context,
+      child: new AlertDialog(
+        title: new Text("Edit Counter"),
+        content: Container(
+          height: 100,
+          child: Column(
+            children: <Widget>[
+              TextField(
+                controller: editCounterTextController,
+                autocorrect: false,
+                decoration: new InputDecoration(
+                  hintText: "$counterName",
+                ),
+              ),
+              TextField(
+                controller: editCounterValueController,
+                keyboardType: TextInputType.number,
+                decoration: new InputDecoration(
+                  hintText: "$counter",
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              setState(() {
+                counterName = editCounterTextController.text;
+                counter = int.parse(editCounterValueController.text);
+                Navigator.pop(context);
+                saveState();
+              });
+            },
+            child: Text("Save"),
           )
         ],
       ),
