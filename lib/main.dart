@@ -18,7 +18,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Counter',
       theme: ThemeData(
-        brightness: Brightness.light,
+        brightness: Brightness.dark,
+        primaryColor: Colors.indigo,
       ),
       home: MyHomePage(title: "Counter"),
     );
@@ -92,7 +93,6 @@ class _MyHomePageState extends State<MyHomePage> {
         addCounter("Counter 1");
       }
     }
-    ;
   }
 
   void loadCounter(String name) async {
@@ -163,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("$counterName"),
+        title: Text("Count-it"),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.add),
@@ -191,183 +191,200 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(0),
-        child: Center(
-            child: Column(
-          children: <Widget>[
-            Container(
-              width: 200,
-              height: 200,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: Colors.grey.withOpacity(0.3),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(90),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                      child: AutoSizeText(
-                        "$counter",
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                          fontSize: 80,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+      body: Container(
+        color: Colors.black.withAlpha(0),
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Center(
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(1),
               ),
-            ),
-            Container(
-              width: double.infinity,
-              height: 1,
-              color: Colors.grey.withOpacity(0.3),
-            ),
-            Expanded(
-              flex: 4,
               child: Container(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(0.0),
-                    child: SizedBox.expand(
-                      child: FlatButton(
-                        highlightColor: Colors.lightGreen,
-                        splashColor: Colors.lightGreen,
-                        //highlightedBorderColor: Colors.grey,
-                        child: Text(
-                          "+",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.withOpacity(0.9),
-                            fontSize: 80,
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      color: Colors.indigo,
+                      height: 60,
+                      child: SizedBox.expand(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: AutoSizeText(
+                              "$counterName",
+                              style: TextStyle(
+                                fontSize: 50,
+                              ),
+                            ),
                           ),
                         ),
-                        onPressed: incCounter,
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              height: 1,
-              color: Colors.grey.withOpacity(0.3),
-            ),
-            Expanded(
-              flex: 2,
-              child: Container(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(0),
-                    child: SizedBox.expand(
-                      child: FlatButton(
-                        highlightColor: Colors.deepOrange,
-                        splashColor: Colors.deepOrange,
-                        child: Text(
-                          "-",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.withOpacity(0.9),
-                            fontSize: 80,
+                    Container(
+                      height: 25,
+                      color: Colors.red,
+                      child: SizedBox.expand(
+                        child: CustomPaint(
+                          painter: TrianglePainterTopDown(),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 160,
+                      color: Colors.white,
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(25, 0, 25, 25),
+                          child: AutoSizeText(
+                            "$counter",
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                              fontSize: 80,
+                            ),
                           ),
                         ),
-                        onPressed: decCounter,
                       ),
                     ),
-                  ),
+                    Expanded(
+                      flex: 4,
+                      child: Container(
+                        color: Colors.indigo,
+                        child: SizedBox.expand(
+                          child: FlatButton(
+                            highlightColor: Colors.lightGreen,
+                            splashColor: Colors.lightGreen,
+                            //highlightedBorderColor: Colors.grey,
+                            child: Text(
+                              "+",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 80,
+                              ),
+                            ),
+                            onPressed: incCounter,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        color: Colors.indigoAccent,
+                        child: Center(
+                          child: SizedBox.expand(
+                            child: FlatButton(
+                              highlightColor: Colors.deepOrange,
+                              splashColor: Colors.deepOrange,
+                              child: Text(
+                                "-",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 80,
+                                ),
+                              ),
+                              onPressed: decCounter,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        )),
+          ),
+        ),
       ),
       drawer: Drawer(
         child: Container(
           child: ListView(
             children: List.generate(counters.length, (index) {
-              return Dismissible(
-                key: Key(counters[index].name),
-                onDismissed: (direction) {
-                  if (counters.length == 1) {
-                    Navigator.pop(context);
-                  }
-                  deleteCounter(counters[index].name);
-                },
-                child: Container(
-                  height: 100,
-                  child: Stack(
-                    children: <Widget>[
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(58, 0, 8, 0),
-                          child: Container(
-                            height: 60,
-                            width: double.infinity,
-                            child: Card(
-                                color: Colors.white,
-                                elevation: 0,
-                                shape: Border.all(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  width: 2,
-                                )),
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                child: Dismissible(
+                  key: Key(counters[index].name),
+                  onDismissed: (direction) {
+                    if (counters.length == 1) {
+                      Navigator.pop(context);
+                    }
+                    deleteCounter(counters[index].name);
+                  },
+                  child: Container(
+                    height: 70,
+                    child: Stack(
+                      children: <Widget>[
+                        Card(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(1),
                           ),
-                        ),
-                      ),
-                      Container(
-                        height: 100,
-                        width: 100,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Card(
-                            elevation: 0,
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(360),
-                              side: BorderSide(
-                                color: Colors.grey.withOpacity(0.3),
-                                width: 2,
-                              ),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: AutoSizeText(
-                                  "${counters[index].value}",
-                                  maxLines: 1,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        child: Center(
                           child: SizedBox.expand(
-                            child: FlatButton(
-                              color: Colors.transparent,
-                              onPressed: () {
-                                loadCounter(counters[index].name);
-                                Navigator.pop(context);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(108, 0, 42, 0),
-                                child: Text("${counters[index].name}"),
-                              ),
+                            child: Row(
+                              children: <Widget>[
+                                Container(
+                                  width: 80,
+                                  color: Colors.indigo,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: SizedBox.expand(
+                                      child: Center(
+                                        child: AutoSizeText(
+                                          "${counters[index].value}",
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 30,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 25,
+                                  child: CustomPaint(
+                                    painter: TrianglePainterLeftRight(),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Container(
+                                    child: Center(
+                                      child: AutoSizeText(
+                                        "${counters[index].name}",
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 20,
+                                  color: Colors.indigo,
+                                )
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        SizedBox.expand(
+                          child: FlatButton(
+                            highlightColor: Colors.indigoAccent.withOpacity(0.3),
+                            onPressed: () {
+                              loadCounter(counters[index].name);
+                              Navigator.pop(context);
+                            },
+                            child: null,
+                            color: Colors.transparent,
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -498,4 +515,50 @@ class Counter {
   Counter(this.name, this.value);
   String name;
   int value;
+}
+
+class TrianglePainterTopDown extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = new Paint();
+
+    Path trianglePath = new Path();
+    trianglePath.moveTo(size.width / 2 - 25, 0);
+    trianglePath.lineTo(size.width / 2, 25);
+    trianglePath.lineTo(size.width / 2 + 25, 0);
+    trianglePath.close();
+    paint.color = Colors.white;
+    canvas.drawRect(Rect.fromLTRB(0, 0, size.width, size.height + 2), paint);
+    paint.color = Colors.indigo;
+    canvas.drawPath(trianglePath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
+class TrianglePainterLeftRight extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = new Paint();
+
+    double tsize = 20;
+
+    Path trianglePath = new Path();
+    trianglePath.moveTo(-1, size.height / 2 - tsize);
+    trianglePath.lineTo(tsize, size.height / 2);
+    trianglePath.lineTo(-1, size.height / 2 + tsize);
+    trianglePath.close();
+    paint.color = Colors.white;
+    canvas.drawRect(Rect.fromLTRB(5, 0, size.width, size.height), paint);
+    paint.color = Colors.indigo;
+    canvas.drawPath(trianglePath, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
 }
