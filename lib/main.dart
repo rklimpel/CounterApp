@@ -7,7 +7,8 @@ import 'prefsHandler.dart';
 //TODO:
 // [ ] Get first free number for Counter name
 // [ ] Edit Counter Value with Keyboard
-// [ ] Edit Counter Name
+// [X] Edit Counter Name
+// [ ] Don't create two counters with the same name bitch!
 // [X] Creator new inital Counter if every counter is removed
 
 void main() => runApp(MyApp());
@@ -37,6 +38,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int counter = 0;
   String counterName;
   List<Counter> counters = [];
+
+  final controller = TextEditingController();
 
   void incCounter() {
     setState(() {
@@ -96,7 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addCounter(String name) {
-    counterName = name != null ? name : "Counter ${getFreeCounterName()}";
+    print(name);
+    counterName = (name != null && name != "") ? name : "Counter ${getFreeCounterName()}";
     counter = 0;
     counters.add(Counter(counterName, counter));
     setState(() {});
@@ -123,9 +127,8 @@ class _MyHomePageState extends State<MyHomePage> {
         loadCounter(counters[0].name);
       }
     });
+    saveState();
   }
-
-  //Helper Methods //
 
   String getFreeCounterName() {
     List<int> values = new List();
@@ -144,6 +147,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -152,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
-              addCounter(null);
+              addCounterDialog();
             },
           ),
           IconButton(
@@ -162,13 +171,13 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              _confirmDialog("Do you really want to reset this Counter?", resetCounter);
+              confirmDialog("Do you really want to reset this Counter?", resetCounter);
             },
           ),
           IconButton(
             icon: Icon(Icons.delete_forever),
             onPressed: () {
-              _confirmDialog("Do you really want to delete this Counter permanently?\n(Not implemented)", deleteThisCounter);
+              confirmDialog("Do you really want to delete this Counter permanently?\n(Not implemented)", deleteThisCounter);
             },
           ),
         ],
@@ -354,7 +363,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _confirmDialog(String text, void onConfirmed()) {
+  void confirmDialog(String text, void onConfirmed()) {
     showDialog(
       context: context,
       child: new AlertDialog(
@@ -373,6 +382,30 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             child: Text("Yes"),
           ),
+        ],
+      ),
+    );
+  }
+
+  void addCounterDialog() {
+    showDialog(
+      context: context,
+      child: new AlertDialog(
+        title: new Text("Create new Counter"),
+        content: TextField(
+          controller: controller,
+          decoration: new InputDecoration(
+            hintText: "Counter ${getFreeCounterName()}",
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              addCounter(controller.text);
+              Navigator.pop(context);
+            },
+            child: Text("OK"),
+          )
         ],
       ),
     );
