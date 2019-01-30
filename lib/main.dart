@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import 'prefsHandler.dart';
@@ -65,11 +66,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void updateListValue(String name, int value) {
-    for (var i = 0; i < counters.length; i++) {
-      if (counters[i].name == name) {
-        counters[i].value = value;
+    setState(() {
+      for (var i = 0; i < counters.length; i++) {
+        if (counters[i].name == name) {
+          counters[i].value = value;
+        }
       }
-    }
+    });
   }
 
   void loadListValues(List<String> names) async {
@@ -151,6 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     addCounterTextController.dispose();
+    editCounterTextController.dispose();
+    editCounterValueController.dispose();
     super.dispose();
   }
 
@@ -205,13 +210,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     borderRadius: BorderRadius.circular(90),
                   ),
-                  child: Center(
-                    child: Text(
-                      "$counter",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                        fontSize: 80,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: AutoSizeText(
+                        "$counter",
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                          fontSize: 80,
+                        ),
                       ),
                     ),
                   ),
@@ -291,7 +300,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 onDismissed: (direction) {
                   if (counters.length == 1) {
                     Navigator.pop(context);
-                    print("POP!!!");
                   }
                   deleteCounter(counters[index].name);
                 },
@@ -333,7 +341,10 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: Text("${counters[index].value}"),
+                                child: AutoSizeText(
+                                  "${counters[index].value}",
+                                  maxLines: 1,
+                                ),
                               ),
                             ),
                           ),
@@ -392,6 +403,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addCounterDialog() {
+    addCounterTextController.clear();
     showDialog(
       context: context,
       child: new AlertDialog(
@@ -416,6 +428,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void editCounterDialog() {
+    editCounterTextController.clear();
+    editCounterValueController.clear();
+    editCounterTextController.text = counterName;
+    editCounterValueController.text = "$counter";
     showDialog(
       context: context,
       child: new AlertDialog(
@@ -427,16 +443,10 @@ class _MyHomePageState extends State<MyHomePage> {
               TextField(
                 controller: editCounterTextController,
                 autocorrect: false,
-                decoration: new InputDecoration(
-                  hintText: "$counterName",
-                ),
               ),
               TextField(
                 controller: editCounterValueController,
                 keyboardType: TextInputType.number,
-                decoration: new InputDecoration(
-                  hintText: "$counter",
-                ),
               ),
             ],
           ),
@@ -445,6 +455,11 @@ class _MyHomePageState extends State<MyHomePage> {
           FlatButton(
             onPressed: () {
               setState(() {
+                for (var i = 0; i < counters.length; i++) {
+                  if (counters[i].name == counterName) {
+                    counters[i].name = editCounterTextController.text;
+                  }
+                }
                 counterName = editCounterTextController.text;
                 counter = int.parse(editCounterValueController.text);
                 Navigator.pop(context);
