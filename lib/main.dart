@@ -91,13 +91,16 @@ class _MyHomePageState extends State<MyHomePage> {
   void initData() async {
     String lastCounter = await readLastCounter();
     Future futureCounterNames = readAllCountersNames();
-    futureCounterNames.then((names) => loadListValues(names));
+    futureCounterNames.then((names) => names == null ? null : loadListValues(names));
 
     if (lastCounter != null) {
       loadCounter(lastCounter);
     } else {
-      if (counters.length == 0) {
-        addCounter("Counter 1");
+      if (counters == null || counters.length == 0) {
+        counters = new List();
+        addCounter("sample counter");
+      } else {
+        //TODO???
       }
     }
   }
@@ -110,11 +113,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void addCounter(String name) {
-    print(name);
-    counterName = (name != null && name != "") ? name : "Counter ${getFreeCounterNumber()}";
-    counter = 0;
-    counters.add(Counter(counterName, counter));
-    setState(() {});
+    setState(() {
+      counterName = (name != null && name != "") ? name : "Counter ${getFreeCounterNumber()}";
+      counter = 0;
+      counters.add(Counter(counterName, counter));
+    });
     saveState();
   }
 
