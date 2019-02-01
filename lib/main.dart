@@ -235,6 +235,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(
+              color: Colors.black.withOpacity(0.6),
+            ),
             border: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: Colors.white,
@@ -281,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
         decoration: InputDecoration(
           hintText: "$counter",
           hintStyle: TextStyle(
-            color: Colors.black,
+            color: Colors.black.withOpacity(0.6),
           ),
           border: UnderlineInputBorder(
             borderSide: BorderSide(
