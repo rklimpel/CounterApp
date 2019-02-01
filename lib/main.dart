@@ -5,13 +5,6 @@ import 'customPainters.dart';
 import 'dialogs.dart';
 import 'prefsHandler.dart';
 
-//TODO:
-// [X] Get first free number for Counter name
-// [X] Edit Counter Value with Keyboard
-// [X] Edit Counter Name
-// [X] Don't create two counters with the same name bitch!
-// [X] Creator new inital Counter if every counter is removed
-
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -42,8 +35,9 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Counter> counters = [];
 
   double nameContainerHeight = 60;
-  double valueContainerHeight = 160;
+  double valueContainerHeight = 140;
   IconData upperButtonIcon = Icons.add;
+  IconData lowerButtonIcon = Icons.remove;
 
   bool editCounter = false;
   bool editName = false;
@@ -111,6 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void loadCounter(String name) async {
     counterName = name;
     counter = await readCounterValue(name);
+    setCounterStateCount();
     setState(() {});
   }
 
@@ -173,35 +168,149 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void setCounterStateCount() {
-    counterState = CounterState.count;
-    nameContainerHeight = 60;
-    valueContainerHeight = 160;
+    setState(() {
+      counterState = CounterState.count;
+      nameContainerHeight = 60;
+      valueContainerHeight = 140;
+      upperButtonIcon = Icons.add;
+      lowerButtonIcon = Icons.remove;
+    });
+  }
+
+  void setCounterStateEditName() {
+    setState(() {
+      counterState = CounterState.editName;
+      nameContainerHeight = 200;
+      valueContainerHeight = 0;
+      upperButtonIcon = Icons.save;
+      lowerButtonIcon = Icons.clear;
+    });
+  }
+
+  void setCounterStateEditValue() {
+    setState(() {
+      counterState = CounterState.editValue;
+      nameContainerHeight = 0;
+      valueContainerHeight = 200;
+      upperButtonIcon = Icons.save;
+      lowerButtonIcon = Icons.clear;
+    });
+  }
+
+  void setCounterStateAddCounter() {
+    setState(() {
+      counterState = CounterState.add;
+      nameContainerHeight = 200;
+      valueContainerHeight = 0;
+      upperButtonIcon = Icons.save;
+      lowerButtonIcon = Icons.clear;
+    });
   }
 
   Widget counterNameSwapper() {
-    if (editName) {
+    if (counterState == CounterState.editName || counterState == CounterState.add) {
+      TextEditingController c;
+      String hint = "";
+      if (counterState == CounterState.editName) {
+        editCounterTextController.text = counterName;
+        c = editCounterTextController;
+      } else if (counterState == CounterState.add) {
+        addCounterTextController.clear();
+        c = addCounterTextController;
+        hint = "Counter ${getFreeCounterNumber()}";
+      }
+
+      return Form(
+        key: formKey,
+        child: TextFormField(
+          autofocus: false,
+          autocorrect: false,
+          autovalidate: true,
+          validator: (val) => checkNameExists(val) && val != counterName ? "name already in use" : null,
+          controller: c,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          style: TextStyle(
+            fontSize: 25,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            border: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.white,
+                width: 3,
+              ),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.white,
+                width: 3,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: AutoSizeText(
+          "$counterName",
+          style: TextStyle(
+            fontSize: 25,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+  }
+
+  Widget counterValueSwapper() {
+    if (counterState == CounterState.editValue) {
+      editCounterValueController.text = "";
       return TextFormField(
-        controller: editCounterTextController,
+        autofocus: false,
+        autocorrect: false,
+        controller: editCounterValueController,
         textAlign: TextAlign.center,
-        enabled: false,
+        keyboardType: TextInputType.number,
         maxLines: 1,
         style: TextStyle(
-          fontSize: 20,
+          fontSize: 50,
+          color: Colors.black,
         ),
         decoration: InputDecoration(
-          disabledBorder: OutlineInputBorder(
+          hintText: "$counter",
+          hintStyle: TextStyle(
+            color: Colors.black,
+          ),
+          border: UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.black,
-              width: 1,
+              width: 3,
+            ),
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.black,
+              width: 3,
+            ),
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.black,
+              width: 3,
             ),
           ),
         ),
       );
     } else {
       return AutoSizeText(
-        "$counterName",
+        "$counter",
+        maxLines: 1,
         style: TextStyle(
-          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+          fontSize: 80,
         ),
       );
     }
@@ -212,31 +321,7 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () {
-              setState(() {
-                if (valueContainerHeight == 220) {
-                  nameContainerHeight = 60;
-                  valueContainerHeight = 160;
-                } else {
-                  nameContainerHeight = 0;
-                  valueContainerHeight = 220;
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () {
-              setState(() {
-                if (valueContainerHeight == 0) {
-                  nameContainerHeight = 60;
-                  valueContainerHeight = 160;
-                } else {
-                  nameContainerHeight = 220;
-                  valueContainerHeight = 0;
-                }
-              });
-            },
+            onPressed: setCounterStateAddCounter,
           ),
           IconButton(
             icon: Icon(Icons.refresh),
@@ -277,15 +362,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             GestureDetector(
                               onDoubleTap: () {
-                                setState(() {
-                                  if (valueContainerHeight == 0) {
-                                    nameContainerHeight = 60;
-                                    valueContainerHeight = 160;
-                                  } else {
-                                    nameContainerHeight = 220;
-                                    valueContainerHeight = 0;
-                                  }
-                                });
+                                if (counterState == CounterState.count) {
+                                  setCounterStateEditName();
+                                }
                               },
                             )
                           ],
@@ -304,18 +383,23 @@ class _MyHomePageState extends State<MyHomePage> {
                       duration: Duration(milliseconds: 250),
                       height: valueContainerHeight,
                       color: Colors.white,
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(25, 0, 25, 25),
-                          child: AutoSizeText(
-                            "$counter",
-                            maxLines: 1,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                              fontSize: 80,
+                      child: SizedBox.expand(
+                        child: Stack(
+                          children: <Widget>[
+                            Center(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(25, 0, 25, 25),
+                                child: counterValueSwapper(),
+                              ),
                             ),
-                          ),
+                            GestureDetector(
+                              onDoubleTap: () {
+                                if (counterState == CounterState.count) {
+                                  setCounterStateEditValue();
+                                }
+                              },
+                            )
+                          ],
                         ),
                       ),
                     ),
@@ -327,12 +411,58 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: FlatButton(
                             highlightColor: Colors.lightGreen,
                             splashColor: Colors.lightGreen,
-                            //highlightedBorderColor: Colors.grey,
                             child: Icon(
                               upperButtonIcon,
-                              size: 80,
+                              size: 50,
                             ),
-                            onPressed: incCounter,
+                            onPressed: () {
+                              final form = formKey.currentState;
+                              switch (counterState) {
+                                case CounterState.count:
+                                  {
+                                    incCounter();
+                                    break;
+                                  }
+                                case CounterState.add:
+                                  {
+                                    if (!form.validate()) {
+                                      //Do nothing
+                                    } else {
+                                      setState(() {
+                                        addCounter(addCounterTextController.text);
+                                        setCounterStateCount();
+                                        saveState();
+                                      });
+                                    }
+                                    break;
+                                  }
+                                case CounterState.editName:
+                                  {
+                                    if (!form.validate()) {
+                                      //Do Nothing
+                                    } else {
+                                      for (var i = 0; i < counters.length; i++) {
+                                        if (counters[i].name == counterName) {
+                                          setState(() {
+                                            counters[i].name = editCounterTextController.text;
+                                          });
+                                        }
+                                      }
+                                      counterName = editCounterTextController.text;
+                                      setCounterStateCount();
+                                      saveState();
+                                    }
+                                    break;
+                                  }
+                                case CounterState.editValue:
+                                  {
+                                    counter = int.parse(editCounterValueController.text);
+                                    setCounterStateCount();
+                                    saveState();
+                                    break;
+                                  }
+                              }
+                            },
                           ),
                         ),
                       ),
@@ -346,14 +476,24 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: FlatButton(
                               highlightColor: Colors.deepOrange,
                               splashColor: Colors.deepOrange,
-                              child: Text(
-                                "-",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 80,
-                                ),
+                              child: Icon(
+                                lowerButtonIcon,
+                                size: 50,
                               ),
-                              onPressed: decCounter,
+                              onPressed: () {
+                                switch (counterState) {
+                                  case CounterState.count:
+                                    {
+                                      decCounter();
+                                      break;
+                                    }
+                                  default:
+                                    {
+                                      setCounterStateCount();
+                                      break;
+                                    }
+                                }
+                              },
                             ),
                           ),
                         ),
@@ -471,6 +611,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: myAppbar(),
       body: myMainBody(),
       drawer: myDrawer(),
