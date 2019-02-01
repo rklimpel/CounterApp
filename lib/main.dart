@@ -369,6 +369,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                   setCounterStateEditName();
                                 }
                               },
+                              onLongPress: () {
+                                if (counterState == CounterState.count) {
+                                  setCounterStateEditName();
+                                }
+                              },
                             )
                           ],
                         ),
@@ -397,6 +402,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                             GestureDetector(
                               onDoubleTap: () {
+                                if (counterState == CounterState.count) {
+                                  setCounterStateEditValue();
+                                }
+                              },
+                              onLongPress: () {
                                 if (counterState == CounterState.count) {
                                   setCounterStateEditValue();
                                 }
